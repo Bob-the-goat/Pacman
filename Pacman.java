@@ -18,8 +18,7 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
      char direction ='U';
      int velocityX = 0;
      int velocityY = 0;
-     
-     
+       
      Block(Image image,int x,int y,int width, int height) {
       this.image=image;
       this.x=x;
@@ -45,7 +44,6 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
          }
       
   }
-
       void UpdateVelocity() {
        if(this.direction=='U'){
           this.velocityX=0;
@@ -71,8 +69,6 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
        }
 }
       
-  
- 
   private int rowCount = 21;
     private int columnCount = 19;
     private int tileSize = 32;
@@ -90,8 +86,6 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
     private Image pacmanLeftImage;
     private Image pacmanRightImage;
   
-
-   
     private String[] tileMap = {
         "XXXXXXXXXXXXXXXXXXX",
         "X        X        X",
@@ -102,7 +96,7 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
         "XXXX XXXX XXXX XXXX",
         "OOOX X       X XOOO",
         "XXXX X XXrXX X XXXX",
-        "X       bpo       X",
+        "       bpo         ",
         "XXXX X XXXXX X XXXX",
         "OOOX X       X XOOO",
         "XXXX X XXXXX X XXXX",
@@ -116,7 +110,6 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
         "XXXXXXXXXXXXXXXXXXX",     
       };
    
- 
     HashSet<Block> walls;
     HashSet<Block> foods;
     HashSet<Block> ghosts;
@@ -135,7 +128,7 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
       setBackground(Color.BLACK);
       addKeyListener(this);
       setFocusable(true);
-      
+    
       wallImage=new ImageIcon(getClass().getResource("./wall.png")).getImage();
       blueGhostImage=new ImageIcon(getClass().getResource("./blueGhost.png")).getImage();
       orangeGhostImage=new ImageIcon(getClass().getResource("./orangeGhost.png")).getImage();
@@ -152,10 +145,9 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
         char newDirection = directions[random.nextInt(4)];
         ghost.updateDirection(newDirection);
       }
-      gameLoop = new Timer(50,this);
+      gameLoop = new Timer(100,this);
       gameLoop.start();
     }  
-    
     
      public void loadMap(){
         walls = new HashSet<Block>();
@@ -195,12 +187,7 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
               else if (tileMapchar == ' ') {
                Block food = new Block(null , x+14 , y+14 ,  4 , 4);
                foods.add(food);
-              }
-             
-
-           
-           
-           
+              }       
            }
           }
         }
@@ -223,13 +210,28 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
      for(Block food:foods) {
        g.fillRect(food.x, food.y, food.width,food.height);
       }
-       g.setFont(new Font("Arial",Font.PLAIN,30));
-      if (gameOver){
-        g.drawString("GAME OVER :" + String.valueOf(score),tileSize/2, tileSize/2);
+       g.setFont(new Font("Arial",Font.PLAIN,26));
+       g.drawString("Lives:" + String.valueOf(lives) + "                                                          Score:" + String.valueOf(score),tileSize/2,tileSize/2);
+       if (gameOver){
+            g.setFont(new Font("Monospaced", Font.BOLD, 80));
+            g.setColor(Color.RED);
+            String gameOverText = "GAME OVER";
+            // Calculate center position
+            FontMetrics fm = g.getFontMetrics();
+            int x = (boardWidth - fm.stringWidth(gameOverText)) / 2;
+            int y = (boardHeight - fm.getHeight()) / 2 + fm.getAscent();
+
+            g.drawString(gameOverText, x, y);
+
+            // Draw smaller hint text below it
+            g.setFont(new Font("Monospaced", Font.PLAIN, 24));
+            g.setColor(Color.WHITE);
+            String restartText = "Final Score: " + score + " | Press any key to restart";
+            fm = g.getFontMetrics();
+            x = (boardWidth - fm.stringWidth(restartText)) / 2;
+            g.drawString(restartText, x, y + 50);
       }
-      else {
-        g.drawString("x" + String.valueOf(lives) + "Score:" + String.valueOf(score),tileSize/2,tileSize/2);
-      }
+
     
   
   Block foodEaten = null ;
@@ -245,17 +247,13 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
     resetPositions();
    }
   
-  } 
-    
-
-  
+  }   
 
   @Override
   public void actionPerformed(ActionEvent e) {
     move();
     repaint();
     if(gameOver){
-      g.drawString("GAME OVER");
       gameLoop.stop();
     }
   }
@@ -263,8 +261,14 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
    public void move() {
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
-   
-
+    
+     if (pacman.x < 0) {
+       pacman.x = boardWidth;
+     }
+    else if (pacman.x > boardWidth){
+       pacman.x = 0;
+     }  
+ 
     for (Block wall:walls){
        if(collision(pacman, wall)) {
         pacman.x-=pacman.velocityX;
@@ -300,18 +304,13 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
     }    
   } 
 
-
-  
-
   public boolean collision(Block a,Block b){
     return  a.x<b.x +b.width &&
             a.x+a.width>b.x &&
             a.y<b.y +b.height &&
-            a.y+a.height>b.y;  
-
-    
+            a.y+a.height>b.y;   
   }
-   
+
   public void resetPositions(){
   pacman.reset();
   pacman.velocityX = 0;
@@ -352,8 +351,8 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
     }
         else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
           pacman.updateDirection('R');
-    }
-     if (pacman.direction=='U'){
+    } 
+    if (pacman.direction=='U'){
       pacman.image=pacmanUpImage;
      }
      else if (pacman.direction=='D'){
@@ -368,10 +367,3 @@ public class Pacman extends JPanel implements ActionListener,KeyListener {
   
     }
   }
-
-    
-
- 
-
-
-
